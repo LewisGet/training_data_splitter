@@ -4,6 +4,7 @@ import torch
 import config
 import glob
 from torch.utils.data.dataset import Dataset
+import torchaudio
 import librosa
 import numpy as np
 from pydub import AudioSegment
@@ -12,6 +13,7 @@ _parentdir = os.path.join(os.path.curdir, "..", "MaskCycleGAN-VC")
 sys.path.insert(0, str(_parentdir))
 
 from mask_cyclegan_vc.model import Discriminator
+from mask_cyclegan_vc.utils import decode_melspectrogram
 
 sys.path.remove(str(_parentdir))
 
@@ -60,8 +62,11 @@ class RawDataset(Dataset):
             if mel.shape[-1] < 64:
                 continue
 
-            app = (mel - self.mel_mean) / self.mel_std
-            self.mel_normalized.append(app)
+            step = 64
+            for i, ii in enumerate(range(0, mel.shape[-1], step)):
+                start, end = i * step, (i + 1) * step
+                app = (mel[:, start:end] - self.mel_mean) / self.mel_std
+                self.mel_normalized.append(app)
 
     def __getitem__(self, index):
         return self.mel_normalized[index]
@@ -84,7 +89,26 @@ class DataDiscriminator:
         self.vocoder = vocoder
         self.sample_rate = config.sample_rate
         load_model(self.d, "discriminator_A")
+        self.dataset = RawDataset()
+        self.feed_dataset = torch.utils.data.DataLoader(self.dataset)
+
+    def pick(self):
+        for i, data in enumerate(self.feed_dataset):
+            data = data.to(self.device, dtype=torch.float)
+            label = torch.mean(self.d(data))
+            wav = decode_melspectrogram(self.vocoder, data[0].detach().cpu(), self.dataset.mel_mean, self.dataset.mel_std).cpu()
+
+            if label > config.bias:
+                filepath = os.path.join(config.save_good_path, "good_" + str(i) + ".wav")
+                torchaudio.save(filepath, wav, sample_rate=self.sample_rate)
+                print("save: " + filepath)
+            else:
+                filepath = os.path.join(config.save_bad_path, "bad_" + str(i) + ".wav")
+                torchaudio.save(filepath, wav, sample_rate=self.sample_rate)
+                print("save: " + filepath)
 
 
 if __name__ == "__main__":
     conversion_to_wav(config.pre_conver_path, config.pre_conver_types, config.conver_save_path)
+    e = DataDiscriminator()
+    e.pick()
