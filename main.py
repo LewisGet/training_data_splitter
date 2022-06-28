@@ -101,11 +101,9 @@ class DataDiscriminator:
             if label > config.bias:
                 filepath = os.path.join(config.save_good_path, "good_" + str(i) + ".wav")
                 torchaudio.save(filepath, wav, sample_rate=self.sample_rate)
-                print("save: " + filepath)
             else:
                 filepath = os.path.join(config.save_bad_path, "bad_" + str(i) + ".wav")
                 torchaudio.save(filepath, wav, sample_rate=self.sample_rate)
-                print("save: " + filepath)
 
 
 if __name__ == "__main__":
