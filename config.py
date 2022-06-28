@@ -12,3 +12,7 @@ load_epoch = 8
 load_model_path = os.path.join(os.sep, "home", "results", "debug", "ckpts")
 load_model_name = "discriminator_A"
 gpu_ids = [0]
+
+pre_conver_path = os.path.join(".", "pre_conver")
+pre_conver_types = ["m4a", "mp3", "mp4"]
+conver_save_path = os.path.join(".", "dataset")
