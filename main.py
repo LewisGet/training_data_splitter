@@ -51,9 +51,17 @@ class RawDataset(Dataset):
         return len(self.mel_normalized)
 
 
+def load_model(model, name):
+    name = f'{str(config.load_epoch).zfill(5)}_{name}.pth.tar'
+    ckpt_path = os.path.join(config.load_model_path, name)
+    checkpoint = torch.load(ckpt_path, map_location=config.gpu_ids[0])
+    model.load_state_dict(checkpoint['model_state'])
+
+
 class DataDiscriminator:
     def __init__(self):
         self.device = config.device
         self.d = Discriminator().to(self.device)
         self.vocoder = vocoder
         self.sample_rate = config.sample_rate
+        load_model(self.d, "discriminator_A")
