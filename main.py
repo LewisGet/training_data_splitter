@@ -88,7 +88,7 @@ class DataDiscriminator:
         self.d = Discriminator().to(self.device)
         self.vocoder = vocoder
         self.sample_rate = config.sample_rate
-        load_model(self.d, "discriminator_A")
+        load_model(self.d, config.load_model_name)
         self.dataset = RawDataset()
         self.feed_dataset = torch.utils.data.DataLoader(self.dataset)
 
