@@ -73,7 +73,7 @@ class RawDataset(Dataset):
 def load_model(model, name):
     name = f'{str(config.load_epoch).zfill(5)}_{name}.pth.tar'
     ckpt_path = os.path.join(config.load_model_path, name)
-    checkpoint = torch.load(ckpt_path, map_location=config.gpu_ids[0])
+    checkpoint = torch.load(ckpt_path, map_location=torch.cuda.set_device(config.gpu_ids[0]))
     model.load_state_dict(checkpoint['model_state'])
 
 
